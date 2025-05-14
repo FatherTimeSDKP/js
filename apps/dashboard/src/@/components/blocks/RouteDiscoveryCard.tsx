@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type React from "react";
 
-export function SettingsCard(
+export function RouteDiscoveryCard(
   props: React.PropsWithChildren<{
     bottomText: React.ReactNode;
     header?: {
@@ -75,7 +75,7 @@ export function SettingsCard(
           >
             {props.saveButton.isPending && <Spinner className="size-3" />}
             {props.saveButton.label ||
-              (props.saveButton.isPending ? "Saving" : "Submit")}
+              (props.saveButton.isPending ? "Submitting" : "Submit Token")}
           </Button>
         )}
       </div>

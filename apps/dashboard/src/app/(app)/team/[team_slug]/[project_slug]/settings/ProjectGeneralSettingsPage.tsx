@@ -346,32 +346,26 @@ export function ProjectGeneralSettingsPageUI(props: {
             isUpdatingProject={updateProject.isPending}
             handleSubmit={handleSubmit}
           />
-
           <ProjectImageSetting
             updateProjectImage={props.updateProjectImage}
             avatar={project.image || null}
             client={props.client}
           />
-
           <ProjectKeyDetails
             project={project}
             rotateSecretKey={props.rotateSecretKey}
           />
-
           <ProjectIdCard project={project} />
-
           <AllowedDomainsSetting
             form={form}
             isUpdatingProject={updateProject.isPending}
             handleSubmit={handleSubmit}
           />
-
           <AllowedBundleIDsSetting
             form={form}
             isUpdatingProject={updateProject.isPending}
             handleSubmit={handleSubmit}
           />
-
           <EnabledServicesSetting
             form={form}
             isUpdatingProject={updateProject.isPending}
@@ -379,7 +373,6 @@ export function ProjectGeneralSettingsPageUI(props: {
             paths={paths}
             showNebulaSettings={props.showNebulaSettings}
           />
-
           <TransferProject
             isOwnerAccount={props.isOwnerAccount}
             client={props.client}
@@ -388,7 +381,6 @@ export function ProjectGeneralSettingsPageUI(props: {
             currentTeamId={project.teamId}
             transferProject={props.transferProject}
           />
-
           <DeleteProject
             projectName={project.name}
             deleteProject={props.deleteProject}
