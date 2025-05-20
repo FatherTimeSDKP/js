@@ -1,7 +1,7 @@
 "use client";
 
 import type { Project } from "@/api/projects";
-import { type Fee, updateFee } from "@/api/universal-bridge/developer";
+import type { Fee } from "@/api/universal-bridge/developer";
 import { RouteDiscoveryCard } from "@/components/blocks/RouteDiscoveryCard";
 import {
   Form,
@@ -12,15 +12,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
 import { NetworkSelectorButton } from "components/selects/NetworkSelectorButton";
 import {
-  type ApiKeyPayConfigValidationSchema,
-  apiKeyPayConfigValidationSchema,
+  type RouteDiscoveryValidationSchema,
+  routeDiscoveryValidationSchema,
 } from "components/settings/ApiKeys/validations";
 import { useTrack } from "hooks/analytics/useTrack";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 interface PayConfigProps {
   project: Project;
@@ -32,120 +31,108 @@ interface PayConfigProps {
 const TRACKING_CATEGORY = "pay";
 
 export const RouteDiscovery: React.FC<PayConfigProps> = (props) => {
-  const form = useForm<ApiKeyPayConfigValidationSchema>({
-    resolver: zodResolver(apiKeyPayConfigValidationSchema),
-    values: {
-      payoutAddress: props.fees.feeRecipient ?? "",
-      developerFeeBPS: props.fees.feeBps ? props.fees.feeBps / 100 : 0,
+  const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
+  const form = useForm<RouteDiscoveryValidationSchema>({
+    resolver: zodResolver(routeDiscoveryValidationSchema),
+    defaultValues: {
+      tokenAddress: "",
     },
   });
 
   const trackEvent = useTrack();
 
-  const updateFeeMutation = useMutation({
-    mutationFn: async (values: {
-      payoutAddress: string;
-      developerFeeBPS: number;
-    }) => {
-      await updateFee({
-        clientId: props.project.publishableKey,
-        teamId: props.teamId,
-        feeRecipient: values.payoutAddress,
-        feeBps: values.developerFeeBPS,
-      });
-    },
-  });
-
   const handleSubmit = form.handleSubmit(
-    ({ payoutAddress, developerFeeBPS }) => {
-      updateFeeMutation.mutate(
-        {
-          payoutAddress,
-          developerFeeBPS: developerFeeBPS ? developerFeeBPS * 100 : 0,
-        },
-        {
-          onSuccess: () => {
-            toast.success("Fee sharing updated");
-            trackEvent({
-              category: TRACKING_CATEGORY,
-              action: "configuration-update",
-              label: "success",
-              data: {
-                payoutAddress,
-              },
-            });
-          },
-          onError: (err) => {
-            toast.error("Failed to update fee sharing");
-            console.error(err);
-            trackEvent({
-              category: TRACKING_CATEGORY,
-              action: "configuration-update",
-              label: "error",
-              error: err,
-            });
-          },
-        },
-      );
+    () => {
+      console.log("Button pressed");
+      setIsSubmitSuccess(true);
     },
     (errors) => {
       console.log(errors);
     },
   );
 
-  return (
-    <Form {...form}>
-      <form onSubmit={handleSubmit} autoComplete="off">
-        <RouteDiscoveryCard
-          bottomText=""
-          errorText={form.getFieldState("payoutAddress").error?.message}
-          saveButton={{
-            type: "submit",
-            disabled: !form.formState.isDirty,
-            isPending: updateFeeMutation.isPending,
-            variant: "primary",
-          }}
-          noPermissionText={undefined}
-        >
-          <div>
-            <h3 className="font-semibold text-xl tracking-tight">
-              Don't see your token listed?
-            </h3>
-            <p className="mt-1.5 mb-4 text-foreground text-sm">
-              Select your chain and input the token address to automatically
-              kick-off the toke route discovery process. Please check back on
-              this page within 20-40 minutes of submitting this form.
-            </p>
+  // Success component shown after successful submission
+  const SuccessComponent = () => (
+    <div className="bg-green-50 border border-green-200 rounded-md p-4 mt-4">
+      <h4 className="text-green-600 font-medium text-lg">
+        Token submitted successfully!
+      </h4>
+      <p className="text-green-600">
+        Thank you for your submission. If you still do not see your token listed
+        after some time, please reach out to our team for support.
+      </p>
+    </div>
+  );
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="blockchain"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Blockchain</FormLabel>
-                    <NetworkSelectorButton />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="tokenAddress"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Token Address</FormLabel>
-                    <FormControl>
-                      <div className="flex items-center gap-2">
-                        <Input {...field} placeholder="0x..." />
-                      </div>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-        </RouteDiscoveryCard>
-      </form>
-    </Form>
+  return (
+    <RouteDiscoveryCard
+      bottomText=""
+      saveButton={
+        !isSubmitSuccess
+          ? {
+              type: "submit",
+              form: "route-discovery-form", // Connect to form by ID
+              disabled: !form.formState.isDirty || form.formState.isSubmitting,
+              variant: "primary",
+            }
+          : undefined
+      }
+      noPermissionText={undefined}
+    >
+      <div>
+        <h3 className="font-semibold text-xl tracking-tight">
+          Don't see your token listed?
+        </h3>
+        <p className="mt-1.5 mb-4 text-foreground text-sm">
+          Select your chain and input the token address to automatically
+          kick-off the token route discovery process. Please check back on this
+          page within 20-40 minutes of submitting this form.
+        </p>
+
+        {isSubmitSuccess ? (
+          // Show success message after successful submission
+          <SuccessComponent />
+        ) : (
+          // Show form when not yet successfully submitted
+          <Form {...form}>
+              <form onSubmit={handleSubmit} autoComplete="off">
+              autoComplete="off"
+            >
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="blockchain"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Blockchain</FormLabel>
+                      <FormControl>
+                        <NetworkSelectorButton
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="tokenAddress"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Token Address</FormLabel>
+                      <FormControl>
+                        <div className="flex items-center gap-2">
+                          <Input {...field} placeholder="0x..." />
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </form>
+          </Form>
+        )}
+      </div>
+    </RouteDiscoveryCard>
   );
 };

@@ -123,6 +123,18 @@ export const apiKeyPayConfigValidationSchema = z.object({
     .optional(),
 });
 
+export const routeDiscoveryValidationSchema = z.object({
+  tokenAddress: z
+    .string({
+      required_error: "Token address is required",
+    })
+    .min(1, "Token address is required")
+    .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid contract address format"),
+});
+export type RouteDiscoveryValidationSchema = z.infer<
+  typeof routeDiscoveryValidationSchema
+>;
+
 export type ApiKeyEmbeddedWalletsValidationSchema = z.infer<
   typeof apiKeyEmbeddedWalletsValidationSchema
 >;
