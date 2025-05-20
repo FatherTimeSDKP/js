@@ -124,6 +124,7 @@ export const apiKeyPayConfigValidationSchema = z.object({
 });
 
 export const routeDiscoveryValidationSchema = z.object({
+  chainId: z.number(),
   tokenAddress: z
     .string({
       required_error: "Token address is required",
