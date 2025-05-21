@@ -75,7 +75,7 @@ export function SettingsCard(
           >
             {props.saveButton.isPending && <Spinner className="size-3" />}
             {props.saveButton.label ||
-              (props.saveButton.isPending ? "Saving" : "Submit")}
+              (props.saveButton.isPending ? "Saving" : "Save")}
           </Button>
         )}
       </div>
