@@ -27,7 +27,6 @@ const TRACKING_CATEGORY = "token_discovery";
 export const RouteDiscovery: React.FC = () => {
   const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
   const [isSubmitFail, setIsSubmitFailed] = useState(false);
-  const [routeError, setError] = useState<string>();
   const walletChain = useActiveWalletChain();
 
   // State to track the selected chain ID directly from the NetworkSelectorButton
@@ -87,7 +86,6 @@ export const RouteDiscovery: React.FC = () => {
             });
           },
           onError: (err) => {
-            setError(err.message);
             setIsSubmitFailed(true);
             toast.error("Token Submission Failed");
 
@@ -135,9 +133,6 @@ export const RouteDiscovery: React.FC = () => {
       <p className="mb-2 text-red-600">
         Please double check the network and token address. If issues persist,
         please reach out to our support team.
-        {routeError && (
-          <span className="mt-1 block text-sm">Error: {routeError}</span>
-        )}
       </p>
     </div>
   );
