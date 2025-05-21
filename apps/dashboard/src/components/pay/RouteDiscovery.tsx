@@ -1,8 +1,5 @@
 "use client";
-
-import type { Project } from "@/api/projects";
 import { addUniversalBridgeTokenRoute } from "@/api/universal-bridge/addRoute"; // Adjust the import path
-import type { Fee } from "@/api/universal-bridge/developer";
 import { RouteDiscoveryCard } from "@/components/blocks/RouteDiscoveryCard";
 import {
   Form,
@@ -23,23 +20,19 @@ import { useTrack } from "hooks/analytics/useTrack";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-
-interface RouteDiscoveryProps {
-  project: Project;
-  teamId: string;
-  teamSlug: string;
-  fees: Fee;
-}
+import { useActiveWalletChain } from "thirdweb/react";
 
 const TRACKING_CATEGORY = "token_discovery";
 
-export const RouteDiscovery: React.FC<RouteDiscoveryProps> = () => {
+export const RouteDiscovery: React.FC = () => {
   const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
   const [isSubmitFail, setIsSubmitFailed] = useState(false);
+  const [routeError, setError] = useState<Error>();
+  const walletChain = useActiveWalletChain();
 
   // State to track the selected chain ID directly from the NetworkSelectorButton
   const [selectedChainId, setSelectedChainId] = useState<number | undefined>(
-    undefined,
+    walletChain?.id,
   );
 
   const form = useForm<RouteDiscoveryValidationSchema>({
@@ -94,9 +87,9 @@ export const RouteDiscovery: React.FC<RouteDiscoveryProps> = () => {
             });
           },
           onError: (err) => {
+            setError(err);
             setIsSubmitFailed(true);
             toast.error("Token Submission Failed");
-            console.error("Token route addition failed:", err);
 
             // Get appropriate error message
             let errorMessage = "An unknown error occurred";
@@ -142,9 +135,9 @@ export const RouteDiscovery: React.FC<RouteDiscoveryProps> = () => {
       <p className="mb-2 text-red-600">
         Please double check the network and token address. If issues persist,
         please reach out to our support team.
-        {submitDiscoveryMutation.error instanceof Error && (
+        {routeError && (
           <span className="mt-1 block text-sm">
-            Error: {submitDiscoveryMutation.error.message}
+            Error: {routeError.message}
           </span>
         )}
       </p>
@@ -191,7 +184,6 @@ export const RouteDiscovery: React.FC<RouteDiscoveryProps> = () => {
                           onSwitchChain={(chain) => {
                             // When a chain is selected, capture its ID and name
                             setSelectedChainId(chain.chainId);
-
                             // Update the form field value
                             field.onChange(chain.chainId);
                           }}
