@@ -58,12 +58,7 @@ export default async function Page(props: {
       />
 
       <div className="flex pt-5">
-        <RouteDiscovery
-          project={project}
-          teamId={team.id}
-          teamSlug={team_slug}
-          fees={fees}
-        />
+        <RouteDiscovery />
       </div>
     </div>
   );
