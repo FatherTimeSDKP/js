@@ -183,6 +183,52 @@ export async function createWalletAccessToken(props: {
               },
             ],
           },
+          {
+            type: "eoa:read",
+            metadataPatterns: [
+              {
+                key: "projectId",
+                rule: {
+                  pattern: props.project.id,
+                },
+              },
+              {
+                key: "teamId",
+                rule: {
+                  pattern: props.project.teamId,
+                },
+              },
+              {
+                key: "type",
+                rule: {
+                  pattern: "server-wallet",
+                },
+              },
+            ],
+          },
+          {
+            type: "eoa:create",
+            requiredMetadataPatterns: [
+              {
+                key: "projectId",
+                rule: {
+                  pattern: props.project.id,
+                },
+              },
+              {
+                key: "teamId",
+                rule: {
+                  pattern: props.project.teamId,
+                },
+              },
+              {
+                key: "type",
+                rule: {
+                  pattern: "server-wallet",
+                },
+              },
+            ],
+          },
         ],
         metadata: {
           projectId: props.project.id,
@@ -289,7 +335,6 @@ export async function createManagementAccessToken(props: {
   });
   if (res.success) {
     const data = res.data;
-    // store the management access token in the project
     await updateProjectClient(
       {
         projectId: props.project.id,
@@ -308,8 +353,9 @@ export async function createManagementAccessToken(props: {
         ],
       },
     );
+    return res;
   }
-  return res;
+  throw new Error(`Failed to create management access token: ${res.error}`);
 }
 
 export function maskSecret(secret: string) {

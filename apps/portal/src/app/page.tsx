@@ -8,7 +8,6 @@ import { ReactIcon } from "../icons";
 import { TypeScriptIcon } from "../icons";
 import { BridgeIcon } from "../icons/products/BridgeIcon";
 import { ConnectIcon } from "../icons/products/ConnectIcon";
-import { ContractsIcon } from "../icons/products/ContractsIcon";
 import { EngineIcon } from "../icons/products/EngineIcon";
 import { InsightIcon } from "../icons/products/InsightIcon";
 import { NebulaIcon } from "../icons/products/NebulaIcon";
@@ -39,8 +38,7 @@ function Hero() {
             thirdweb Documentation
           </h1>
           <p className="mb-8 max-w-md text-lg text-muted-foreground leading-normal">
-            Frontend, Backend, and Onchain tools to build complete web3 apps —
-            on every EVM chain.
+            Development framework for building onchain apps, games, and agents.
           </p>
         </div>
       </div>
@@ -115,7 +113,7 @@ function ReferenceSection() {
         />
         <SDKCard
           title="Insight"
-          href="https://insight-api.thirdweb.com/reference"
+          href="https://insight.thirdweb.com/reference#tag/webhooks"
           icon={InsightIcon}
           isExternal
           iconClassName="text-muted-foreground"
@@ -124,13 +122,6 @@ function ReferenceSection() {
           title="Universal Bridge"
           href="https://bridge.thirdweb.com/reference"
           icon={BridgeIcon}
-          isExternal
-          iconClassName="text-muted-foreground"
-        />
-        <SDKCard
-          title="Contracts"
-          href="https://contracts.thirdweb.com/reference"
-          icon={ContractsIcon}
           isExternal
           iconClassName="text-muted-foreground"
         />
@@ -163,6 +154,12 @@ function LearningResourcesSection() {
           icon={ConnectIcon}
         />
         <ArticleCardIndex
+          href="/pay"
+          title="Universal Bridge"
+          description="Bridge and onramp tokens on any chain"
+          icon={BridgeIcon}
+        />
+        <ArticleCardIndex
           href="/engine"
           title="Engine"
           description="Reliable transactions and monitoring"
@@ -179,12 +176,6 @@ function LearningResourcesSection() {
           title="Nebula"
           description="API interface for LLMs"
           icon={NebulaIcon}
-        />
-        <ArticleCardIndex
-          title="Contracts"
-          description="Solidity contracts and deployment tools"
-          href="/contracts"
-          icon={ContractsIcon}
         />
       </Grid>
     </section>
