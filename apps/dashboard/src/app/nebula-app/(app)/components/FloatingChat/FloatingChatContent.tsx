@@ -202,6 +202,7 @@ function FloatingChatContentLoggedIn(props: {
         />
       ) : (
         <Chats
+          teamId={undefined}
           messages={messages}
           isChatStreaming={isChatStreaming}
           authToken={props.authToken}
@@ -215,6 +216,7 @@ function FloatingChatContentLoggedIn(props: {
         />
       )}
       <ChatBar
+        placeholder={"Ask Nebula"}
         onLoginClick={undefined}
         client={props.client}
         isConnectingWallet={connectionStatus === "connecting"}
@@ -332,10 +334,7 @@ function EmptyStateChatPageContent(props: {
   );
 }
 
-function ExamplePromptButton(props: {
-  label: string;
-  onClick: () => void;
-}) {
+function ExamplePromptButton(props: { label: string; onClick: () => void }) {
   return (
     <Button
       variant="outline"

@@ -3,6 +3,7 @@ import {
   NEXT_PUBLIC_NEBULA_APP_CLIENT_ID,
 } from "@/constants/public-envs";
 import {
+  THIRDWEB_BRIDGE_URL,
   THIRDWEB_BUNDLER_DOMAIN,
   THIRDWEB_INAPP_WALLET_DOMAIN,
   THIRDWEB_INSIGHT_API_DOMAIN,
@@ -27,6 +28,7 @@ function getNebulaThirdwebClient() {
       social: THIRDWEB_SOCIAL_API_DOMAIN,
       bundler: THIRDWEB_BUNDLER_DOMAIN,
       insight: THIRDWEB_INSIGHT_API_DOMAIN,
+      bridge: THIRDWEB_BRIDGE_URL,
     });
   }
 

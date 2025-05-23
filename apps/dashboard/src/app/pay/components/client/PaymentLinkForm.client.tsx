@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getClientThirdwebClient } from "@/constants/thirdweb-client.client";
 import { cn } from "@/lib/utils";
+import { payAppThirdwebClient } from "app/pay/constants";
 import { ChevronDownIcon, CreditCardIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -21,24 +21,13 @@ import {
 } from "thirdweb";
 import { getCurrencyMetadata } from "thirdweb/extensions/erc20";
 import { resolveScheme, upload } from "thirdweb/storage";
-import { setThirdwebDomains } from "thirdweb/utils";
 import { FileInput } from "../../../../components/shared/FileInput";
-import {
-  THIRDWEB_ANALYTICS_DOMAIN,
-  THIRDWEB_BUNDLER_DOMAIN,
-  THIRDWEB_INAPP_WALLET_DOMAIN,
-  THIRDWEB_INSIGHT_API_DOMAIN,
-  THIRDWEB_PAY_DOMAIN,
-  THIRDWEB_RPC_DOMAIN,
-  THIRDWEB_SOCIAL_API_DOMAIN,
-  THIRDWEB_STORAGE_DOMAIN,
-} from "../../../../constants/urls";
 import { resolveEns } from "../../../../lib/ens";
-import { getVercelEnv } from "../../../../lib/vercel-utils";
 
 export function PaymentLinkForm() {
   const [chainId, setChainId] = useState<number>();
   const [recipientAddress, setRecipientAddress] = useState("");
+  // TODO - clean this up later
   const [tokenAddressWithChain, setTokenAddressWithChain] = useState("");
   const [amount, setAmount] = useState("");
   const [title, setTitle] = useState("");
@@ -48,22 +37,6 @@ export function PaymentLinkForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string>("");
-
-  const client = useMemo(() => {
-    if (getVercelEnv() !== "production") {
-      setThirdwebDomains({
-        rpc: THIRDWEB_RPC_DOMAIN,
-        pay: THIRDWEB_PAY_DOMAIN,
-        storage: THIRDWEB_STORAGE_DOMAIN,
-        insight: THIRDWEB_INSIGHT_API_DOMAIN,
-        analytics: THIRDWEB_ANALYTICS_DOMAIN,
-        inAppWallet: THIRDWEB_INAPP_WALLET_DOMAIN,
-        bundler: THIRDWEB_BUNDLER_DOMAIN,
-        social: THIRDWEB_SOCIAL_API_DOMAIN,
-      });
-    }
-    return getClientThirdwebClient();
-  }, []);
 
   const isFormComplete = useMemo(() => {
     return chainId && recipientAddress && tokenAddressWithChain && amount;
@@ -115,7 +88,7 @@ export function PaymentLinkForm() {
         }
 
         const inputs = await parseInputs(
-          client,
+          payAppThirdwebClient,
           chainId,
           tokenAddressWithChain,
           recipientAddress,
@@ -128,7 +101,7 @@ export function PaymentLinkForm() {
           recipientAddress: inputs.recipientAddress,
           tokenAddress: inputs.tokenAddress,
           amount: inputs.amount.toString(),
-          clientId: client.clientId,
+          clientId: payAppThirdwebClient.clientId,
         });
 
         // Add title as name parameter if provided
@@ -150,15 +123,7 @@ export function PaymentLinkForm() {
         setIsLoading(false);
       }
     },
-    [
-      amount,
-      chainId,
-      client,
-      imageUri,
-      recipientAddress,
-      title,
-      tokenAddressWithChain,
-    ],
+    [amount, chainId, imageUri, recipientAddress, title, tokenAddressWithChain],
   );
 
   const handlePreview = useCallback(async () => {
@@ -169,7 +134,7 @@ export function PaymentLinkForm() {
 
     try {
       const inputs = await parseInputs(
-        client,
+        payAppThirdwebClient,
         chainId,
         tokenAddressWithChain,
         recipientAddress,
@@ -181,7 +146,7 @@ export function PaymentLinkForm() {
         recipientAddress: inputs.recipientAddress,
         tokenAddress: inputs.tokenAddress,
         amount: inputs.amount.toString(),
-        clientId: client.clientId,
+        clientId: payAppThirdwebClient.clientId,
       });
 
       // Add title as name parameter if provided
@@ -201,12 +166,15 @@ export function PaymentLinkForm() {
   }, [
     amount,
     chainId,
-    client,
     imageUri,
     recipientAddress,
     title,
     tokenAddressWithChain,
   ]);
+
+  const [selectedChainId, selectedTokenAddress] = tokenAddressWithChain
+    ? tokenAddressWithChain.split(":")
+    : [];
 
   return (
     <Card className="mx-auto w-full max-w-[500px]">
@@ -230,7 +198,7 @@ export function PaymentLinkForm() {
               chainId={chainId}
               onChange={setChainId}
               disableTestnets
-              client={client}
+              client={payAppThirdwebClient}
               className="w-full"
             />
           </div>
@@ -240,11 +208,22 @@ export function PaymentLinkForm() {
               Token
             </Label>
             <TokenSelector
-              tokenAddress={tokenAddressWithChain}
+              showCheck={false}
+              addNativeTokenIfMissing={false}
+              selectedToken={
+                selectedChainId && selectedTokenAddress
+                  ? {
+                      chainId: Number(selectedChainId),
+                      address: selectedTokenAddress,
+                    }
+                  : undefined
+              }
               chainId={chainId ?? undefined}
-              onChange={setTokenAddressWithChain}
+              onChange={(value) => {
+                setTokenAddressWithChain(`${value.chainId}:${value.address}`);
+              }}
               className="w-full"
-              client={client}
+              client={payAppThirdwebClient}
               disabled={!chainId}
               enabled={!!chainId}
             />

@@ -8,7 +8,6 @@ import { NATIVE_TOKEN_ADDRESS } from "../../../../../../../constants/addresses.j
 import { getContract } from "../../../../../../../contract/contract.js";
 import { allowance } from "../../../../../../../extensions/erc20/__generated__/IERC20/read/allowance.js";
 import type { GetBuyWithCryptoQuoteParams } from "../../../../../../../pay/buyWithCrypto/getQuote.js";
-import { formatNumber } from "../../../../../../../utils/formatNumber.js";
 import type { Account } from "../../../../../../../wallets/interfaces/wallet.js";
 import type { PayUIOptions } from "../../../../../../core/hooks/connection/ConnectButtonProps.js";
 import { useWalletBalance } from "../../../../../../core/hooks/others/useWalletBalance.js";
@@ -55,6 +54,7 @@ export function SwapScreenContent(props: {
   setTokenAmount: (amount: string) => void;
   setHasEditedAmount: (hasEdited: boolean) => void;
   disableTokenSelection: boolean;
+  paymentLinkId: undefined | string;
 }) {
   const {
     setScreen,
@@ -121,6 +121,7 @@ export function SwapScreenContent(props: {
           toAmount: tokenAmount,
           client,
           purchaseData: payOptions.purchaseData,
+          paymentLinkId: props.paymentLinkId,
         }
       : undefined;
 
@@ -286,28 +287,14 @@ export function SwapScreenContent(props: {
         {/* Error message */}
         {errorMsg && (
           <div>
-            {errorMsg.data?.minimumAmountEth ? (
+            <div>
               <Text color="danger" size="xs" center multiline>
-                Minimum amount is{" "}
-                {formatNumber(Number(errorMsg.data.minimumAmountEth), 6)}{" "}
-                <TokenSymbol
-                  token={toToken}
-                  chain={toChain}
-                  size="sm"
-                  inline
-                  color="danger"
-                />
+                {errorMsg.title}
               </Text>
-            ) : (
-              <div>
-                <Text color="danger" size="xs" center multiline>
-                  {errorMsg.title}
-                </Text>
-                <Text size="xs" center multiline>
-                  {errorMsg.message}
-                </Text>
-              </div>
-            )}
+              <Text size="xs" center multiline>
+                {errorMsg.message}
+              </Text>
+            </div>
           </div>
         )}
 
@@ -324,23 +311,7 @@ export function SwapScreenContent(props: {
       </Container>
 
       {/* Button */}
-      {errorMsg?.data?.minimumAmountEth ? (
-        <Button
-          variant="accent"
-          fullWidth
-          onClick={() => {
-            props.setTokenAmount(
-              formatNumber(
-                Number(errorMsg.data?.minimumAmountEth),
-                6,
-              ).toString(),
-            );
-            props.setHasEditedAmount(true);
-          }}
-        >
-          Set Minimum
-        </Button>
-      ) : isNotEnoughBalance || errorMsg ? (
+      {isNotEnoughBalance || errorMsg ? (
         <Button
           variant="accent"
           fullWidth
@@ -389,7 +360,7 @@ export function SwapScreenContent(props: {
           {quoteQuery.isLoading ? (
             <>
               Getting price quote
-              <Spinner size="sm" color="accentText" />
+              <Spinner size="sm" color="accentButtonText" />
             </>
           ) : (
             "Continue"

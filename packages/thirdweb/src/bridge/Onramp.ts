@@ -3,6 +3,7 @@ import type { ThirdwebClient } from "../client/client.js";
 import { getThirdwebBaseUrl } from "../utils/domains.js";
 import { getClientFetch } from "../utils/fetch.js";
 import { stringify } from "../utils/json.js";
+import { ApiError } from "./types/Errors.js";
 import type { RouteStep } from "./types/Route.js";
 import type { Token } from "./types/Token.js";
 
@@ -51,6 +52,7 @@ interface OnrampApiRequestBody {
   currency?: string;
   maxSteps?: number;
   excludeChainIds?: string;
+  paymentLinkId?: string;
 }
 
 /**
@@ -142,6 +144,7 @@ export async function prepare(
     currency,
     maxSteps,
     excludeChainIds,
+    paymentLinkId,
   } = options;
 
   const clientFetch = getClientFetch(client);
@@ -180,6 +183,9 @@ export async function prepare(
       ? excludeChainIds.join(",")
       : excludeChainIds;
   }
+  if (paymentLinkId !== undefined) {
+    apiRequestBody.paymentLinkId = paymentLinkId;
+  }
 
   const response = await clientFetch(url, {
     method: "POST",
@@ -191,9 +197,12 @@ export async function prepare(
 
   if (!response.ok) {
     const errorJson = await response.json();
-    throw new Error(
-      `${errorJson.code || response.status} | ${errorJson.message || response.statusText} - ${errorJson.correlationId || "N/A"}`,
-    );
+    throw new ApiError({
+      code: errorJson.code || "UNKNOWN_ERROR",
+      message: errorJson.message || response.statusText,
+      correlationId: errorJson.correlationId || undefined,
+      statusCode: response.status,
+    });
   }
 
   const { data }: { data: OnrampPrepareQuoteResponseData } =
@@ -238,6 +247,10 @@ export declare namespace prepare {
     currency?: string;
     maxSteps?: number;
     excludeChainIds?: string | string[];
+    /**
+     * @hidden
+     */
+    paymentLinkId?: string;
   };
 
   export type Result = OnrampPrepareQuoteResponseData;
