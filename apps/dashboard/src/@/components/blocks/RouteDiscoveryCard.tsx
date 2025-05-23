@@ -75,7 +75,7 @@ export function RouteDiscoveryCard(
           >
             {props.saveButton.isPending && <Spinner className="size-3" />}
             {props.saveButton.label ||
-              (props.saveButton.isPending ? "Submitting" : "Submit Token")}
+              (props.saveButton.isPending ? "Submit" : "Submit Token")}
           </Button>
         )}
       </div>

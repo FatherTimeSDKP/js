@@ -17,23 +17,12 @@ import {
   routeDiscoveryValidationSchema,
 } from "components/settings/ApiKeys/validations";
 import { useTrack } from "hooks/analytics/useTrack";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useActiveWalletChain } from "thirdweb/react";
 
 const TRACKING_CATEGORY = "token_discovery";
 
 export const RouteDiscovery: React.FC = () => {
-  const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
-  const [isSubmitFail, setIsSubmitFailed] = useState(false);
-  const walletChain = useActiveWalletChain();
-
-  // State to track the selected chain ID directly from the NetworkSelectorButton
-  const [selectedChainId, setSelectedChainId] = useState<number | undefined>(
-    walletChain?.id,
-  );
-
   const form = useForm<RouteDiscoveryValidationSchema>({
     resolver: zodResolver(routeDiscoveryValidationSchema),
     defaultValues: {
@@ -43,8 +32,6 @@ export const RouteDiscovery: React.FC = () => {
   });
 
   const resetForm = () => {
-    setIsSubmitSuccess(false);
-    setIsSubmitFailed(false);
     form.reset();
   };
 
@@ -52,35 +39,36 @@ export const RouteDiscovery: React.FC = () => {
 
   const submitDiscoveryMutation = useMutation({
     mutationFn: async (values: {
+      chainId: number;
       tokenAddress: string;
     }) => {
-      try {
-        // Call the API to add the route
-        const result = await addUniversalBridgeTokenRoute({
-          chainId: selectedChainId,
-          tokenAddress: values.tokenAddress,
-        });
+      // Call the API to add the route
+      const result = await addUniversalBridgeTokenRoute({
+        chainId: values.chainId,
+        tokenAddress: values.tokenAddress,
+      });
 
-        return result;
-      } catch (error) {
-        console.error("Error adding route:", error);
-        throw error; // Re-throw to trigger onError handler
-      }
+      return result;
     },
   });
 
   const handleSubmit = form.handleSubmit(
-    ({ tokenAddress }) => {
-      console.log("selectedChainId", selectedChainId);
+    ({ chainId, tokenAddress }) => {
       submitDiscoveryMutation.mutate(
         {
+          chainId,
           tokenAddress,
         },
         {
           onSuccess: (data) => {
-            setIsSubmitSuccess(true);
-            toast.success("Token submitted for discovery");
-            console.log("Token route added successfully:", data);
+            toast.success("Token submitted successfully!", {
+              description:
+                "Thank you for your submission. Contact support if your token doesn't appear after some time.",
+              action: {
+                label: "Submit Another token",
+                onClick: () => resetForm(),
+              },
+            });
             trackEvent({
               category: TRACKING_CATEGORY,
               action: "token-discovery-submit",
@@ -91,15 +79,18 @@ export const RouteDiscovery: React.FC = () => {
               },
             });
           },
-          onError: (err) => {
-            setIsSubmitFailed(true);
-            toast.error("Token Submission Failed");
+          onError: () => {
+            toast.error("Token submission failed!", {
+              description:
+                "Please double check the network and token address. If issues persist, please reach out to our support team.",
+              action: {
+                label: "Try Again",
+                onClick: () => resetForm(),
+              },
+            });
 
             // Get appropriate error message
-            let errorMessage = "An unknown error occurred";
-            if (err) {
-              errorMessage = err.message;
-            }
+            const errorMessage = "An unknown error occurred";
 
             trackEvent({
               category: TRACKING_CATEGORY,
@@ -111,50 +102,9 @@ export const RouteDiscovery: React.FC = () => {
         },
       );
     },
-    (errors) => {
-      console.log("Form validation errors:", errors);
+    () => {
       toast.error("Please fix the form errors before submitting");
     },
-  );
-
-  // Success component shown after successful submission
-  const SuccessComponent = () => (
-    <div className="mt-4 rounded-md border border-green-200 bg-green-50 p-4">
-      <h4 className="font-medium text-green-600 text-lg">
-        Token submitted successfully!
-      </h4>
-      <p className="mb-3 text-green-600">
-        Thank you for your submission. If you still do not see your token listed
-        after some time, please reach out to our team for support.
-      </p>
-      <button
-        type="button"
-        onClick={resetForm}
-        className="rounded-md border border-green-500 bg-green-100 px-4 py-2 text-green-700 transition-colors hover:bg-green-200"
-      >
-        Submit Another Token
-      </button>
-    </div>
-  );
-
-  // Failure component shown after submission fails
-  const FailComponent = () => (
-    <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-4">
-      <h4 className="font-medium text-lg text-red-600">
-        Token submission failed!
-      </h4>
-      <p className="mb-2 text-red-600">
-        Please double check the network and token address. If issues persist,
-        please reach out to our support team.
-      </p>
-      <button
-        type="button"
-        onClick={resetForm}
-        className="rounded-md border border-red-500 bg-red-100 px-4 py-2 text-red-700 transition-colors hover:bg-red-200"
-      >
-        Try Again
-      </button>
-    </div>
   );
 
   return (
@@ -165,14 +115,12 @@ export const RouteDiscovery: React.FC = () => {
           errorText={form.getFieldState("tokenAddress").error?.message}
           saveButton={
             // Only show the submit button in the default state
-            !isSubmitSuccess && !isSubmitFail
-              ? {
-                  type: "submit",
-                  disabled: !form.formState.isDirty,
-                  isPending: submitDiscoveryMutation.isPending,
-                  variant: "primary",
-                }
-              : undefined // Hide the button when in success or error states
+            {
+              type: "submit",
+              disabled: !form.formState.isDirty,
+              isPending: submitDiscoveryMutation.isPending,
+              variant: "outline",
+            }
           }
           noPermissionText={undefined}
         >
@@ -186,47 +134,39 @@ export const RouteDiscovery: React.FC = () => {
               this page within 20-40 minutes of submitting this form.
             </p>
 
-            {isSubmitSuccess ? (
-              <SuccessComponent />
-            ) : isSubmitFail ? (
-              <FailComponent />
-            ) : (
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="chainId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Blockchain</FormLabel>
-                      <FormControl>
-                        <NetworkSelectorButton
-                          onSwitchChain={(chain) => {
-                            // When a chain is selected, capture its ID and name
-                            setSelectedChainId(chain.chainId);
-                            // Update the form field value
-                            field.onChange(chain.chainId);
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="tokenAddress"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Token Address</FormLabel>
-                      <FormControl>
-                        <div className="flex items-center gap-2">
-                          <Input {...field} placeholder="0x..." />
-                        </div>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="chainId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Blockchain</FormLabel>
+                    <FormControl>
+                      <NetworkSelectorButton
+                        onSwitchChain={(chain) => {
+                          // Update the form field value
+                          field.onChange(chain.chainId);
+                        }}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="tokenAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Token Address</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center gap-2">
+                        <Input {...field} placeholder="0x..." />
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         </RouteDiscoveryCard>
       </form>
