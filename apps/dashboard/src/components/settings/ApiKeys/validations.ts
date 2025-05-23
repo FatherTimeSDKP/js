@@ -1,3 +1,4 @@
+import { isAddress } from "thirdweb";
 import { RE_DOMAIN } from "utils/regex";
 import { validStrList } from "utils/validations";
 import { z } from "zod";
@@ -129,7 +130,9 @@ export const routeDiscoveryValidationSchema = z.object({
     .string({
       required_error: "Token address is required",
     })
-    .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid contract address format"),
+    .refine((value) => isAddress(value), {
+      message: "Invalid Ethereum address format",
+    }),
 });
 export type RouteDiscoveryValidationSchema = z.infer<
   typeof routeDiscoveryValidationSchema

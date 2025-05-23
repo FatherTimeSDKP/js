@@ -1,5 +1,5 @@
 "use client";
-import { addUniversalBridgeTokenRoute } from "@/api/universal-bridge/addRoute"; // Adjust the import path
+import { addUniversalBridgeTokenRoute } from "@/api/universal-bridge/tokens"; // Adjust the import path
 import { RouteDiscoveryCard } from "@/components/blocks/RouteDiscoveryCard";
 import {
   Form,
