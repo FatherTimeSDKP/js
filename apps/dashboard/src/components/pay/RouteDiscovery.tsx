@@ -27,7 +27,7 @@ export const RouteDiscovery: React.FC = () => {
     resolver: zodResolver(routeDiscoveryValidationSchema),
     defaultValues: {
       chainId: 1,
-      tokenAddress: "",
+      tokenAddress: undefined,
     },
   });
 
